@@ -533,45 +533,50 @@
         return;
       }
 
-      const translatedText =
-  result.translatedText ||
-  result.nepaliText ||
-  result.englishText ||
-  "No translation was returned.";
+ // --------------------------------------------------
+// Build recipient message
+// --------------------------------------------------
 
-const romanText =
-  result.romanNepaliText ||
-  result.romanizedText ||
-  "";
+let displayText = "";
 
-const displayText =
-  romanText
-    ? `${translatedText}\n\n${romanText}`
-    : translatedText;
+// English -> Nepali
+if (targetLanguage === "ne") {
+
+  displayText = result.nepaliText || "";
+
+  if (result.romanNepaliText) {
+    displayText += "\n\n";
+    displayText += result.romanNepaliText;
+  }
+
+}
+// Nepali -> English
+else {
+
+  displayText =
+    result.englishText ||
+    result.translatedText ||
+    "No translation was returned.";
+
+}
 
 addMessage({
   text: displayText,
   role: "assistant",
   originalText:
-    result.originalText ||
-    originalText,
+    result.originalText || originalText,
   label:
-    `MeChat Bridge · ${getLanguageName(
-      targetLanguage
-    )}`
+    `MeChat Bridge · ${getLanguageName(targetLanguage)}`
 });
 
 conversationMemory.push({
   role: "assistant",
   text: displayText,
   originalText:
-    result.originalText ||
-    originalText,
+    result.originalText || originalText,
   language: targetLanguage,
-  confidence:
-    result.confidence,
-  timestamp:
-    new Date().toISOString()
+  confidence: result.confidence,
+  timestamp: new Date().toISOString()
 });
       
       setConnectionStatus("Online");
