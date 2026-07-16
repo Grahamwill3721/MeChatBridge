@@ -1322,9 +1322,11 @@ petal.textContent = "🌸";
     }
 
     populateLanguages();
+    configureParticipantLanguages();
     setupSpeechRecognition();
     registerEventListeners();
     resizeMessageInput();
+    startConversationSynchronisation();
 
     const webhookConfigured =
       Boolean(config.webhookUrl) &&
