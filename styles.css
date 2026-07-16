@@ -269,25 +269,21 @@ select:disabled {
 
 .petal {
   position: absolute;
-  top: -30px;
+  top: -40px;
 
-  width: 12px;
-  height: 8px;
+  z-index: 4;
 
-  border-radius:
-    80% 20% 75% 25%;
+  pointer-events: none;
 
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 218, 228, 0.95),
-      rgba(235, 135, 161, 0.82)
+  font-size: 18px;
+  line-height: 1;
+
+  opacity: 0;
+
+  filter:
+    drop-shadow(
+      0 3px 5px rgba(195, 87, 118, 0.16)
     );
-
-  box-shadow:
-    0 4px 9px rgba(213, 93, 128, 0.11);
-
-  opacity: 0.84;
 
   animation:
     petalFall var(--duration, 13s)
@@ -298,20 +294,26 @@ select:disabled {
 @keyframes petalFall {
   0% {
     transform:
-      translate3d(0, -10px, 0)
-      rotate(0deg);
+      translate3d(0, -20px, 0)
+      rotate(0deg)
+      scale(0.8);
 
     opacity: 0;
   }
 
   10% {
-    opacity: 0.84;
+    opacity: 0.85;
   }
 
   45% {
     transform:
-      translate3d(var(--drift, 35px), 45vh, 0)
-      rotate(190deg);
+      translate3d(
+        var(--drift, 35px),
+        45vh,
+        0
+      )
+      rotate(170deg)
+      scale(1);
   }
 
   100% {
@@ -321,9 +323,10 @@ select:disabled {
         105vh,
         0
       )
-      rotate(410deg);
+      rotate(390deg)
+      scale(0.9);
 
-    opacity: 0.12;
+    opacity: 0;
   }
 }
 
