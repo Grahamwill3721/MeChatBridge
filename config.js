@@ -16,7 +16,7 @@ webhookUrl:
 
 messagesWebhookUrl:
   "https://arkdaia2.app.n8n.cloud/webhook/mechatbridge-messages",
-
+ 
 demoMode: false,
 
 requestTimeoutMs: 45000,
