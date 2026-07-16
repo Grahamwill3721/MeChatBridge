@@ -1,0 +1,169 @@
+(function () {
+  "use strict";
+  const config = window.MECHAT_CONFIG;
+  const bridge = new window.MeChatBridgeClient(config);
+  const els = {
+    source: document.getElementById("sourceLanguage"),
+    target: document.getElementById("targetLanguage"),
+    input: document.getElementById("messageInput"),
+    messages: document.getElementById("messages"),
+    send: document.getElementById("sendButton"),
+    mic: document.getElementById("micButton"),
+    improve: document.getElementById("improveButton"),
+    clear: document.getElementById("clearChatButton"),
+    voiceStatus: document.getElementById("voiceStatus")
+  };
+  let recognition = null;
+  let isListening = false;
+  const conversationMemory = [];
+
+  function populateLanguages() {
+    config.languages.forEach((language) => {
+      els.source.add(new Option(language.label, language.code));
+      els.target.add(new Option(language.label, language.code));
+    });
+    els.source.value = config.defaultSourceLanguage;
+    els.target.value = config.defaultTargetLanguage;
+  }
+
+  const getLanguage = (code) => config.languages.find((item) => item.code === code);
+  const now = () => new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date());
+  const escapeHtml = (value) => String(value)
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+
+  function appendMessage({ role, text, label, originalText = "", loading = false }) {
+    const article = document.createElement("article");
+    article.className = `message ${role}${loading ? " loading" : ""}`;
+    const avatar = role === "assistant" ? '<div class="message-avatar" aria-hidden="true">☺</div>' : "";
+    const original = originalText ? `<button class="original-toggle" type="button">Show original</button><p class="original-text" hidden>${escapeHtml(originalText)}</p>` : "";
+    article.innerHTML = `${avatar}<div class="bubble">${label ? `<strong>${escapeHtml(label)}</strong>` : ""}<p>${escapeHtml(text)}</p>${original}<time>${now()}</time></div>`;
+    const toggle = article.querySelector(".original-toggle");
+    if (toggle) toggle.addEventListener("click", () => {
+      const originalElement = article.querySelector(".original-text");
+      originalElement.hidden = !originalElement.hidden;
+      toggle.textContent = originalElement.hidden ? "Show original" : "Hide original";
+    });
+    els.messages.append(article);
+    els.messages.scrollTop = els.messages.scrollHeight;
+    return article;
+  }
+
+  function setBusy(value) {
+    els.send.disabled = value;
+    els.improve.disabled = value;
+    els.input.disabled = value;
+  }
+
+  async function sendMessage() {
+    const text = els.input.value.trim();
+    if (!text) return;
+    const sourceLanguage = els.source.value;
+    const targetLanguage = els.target.value;
+    appendMessage({ role: "user", text, label: `You · ${getLanguage(sourceLanguage)?.label || sourceLanguage}` });
+    conversationMemory.push({ role: "user", text, language: sourceLanguage });
+    els.input.value = "";
+    setBusy(true);
+    const pending = appendMessage({ role: "assistant", text: "Bridging your message", label: "MeChat Bridge", loading: true });
+    try {
+      const result = await bridge.processMessage({ text, sourceLanguage, targetLanguage, mode: "translate", recentMessages: conversationMemory });
+      pending.remove();
+      if (result.needsClarification && result.clarificationQuestion) {
+        appendMessage({ role: "assistant", text: result.clarificationQuestion, label: "Clarification needed" });
+        return;
+      }
+      appendMessage({
+        role: "assistant",
+        text: result.translatedText || "No translation was returned.",
+        originalText: result.originalText,
+        label: `MeChat Bridge · ${getLanguage(targetLanguage)?.label || targetLanguage}`
+      });
+      conversationMemory.push({ role: "assistant", text: result.translatedText, originalText: result.originalText, language: targetLanguage });
+    } catch (error) {
+      pending.remove();
+      appendMessage({ role: "assistant", text: error.name === "AbortError" ? "The request timed out. Please try again." : `I could not bridge that message: ${error.message}`, label: "Connection issue" });
+    } finally {
+      setBusy(false);
+      els.input.focus();
+    }
+  }
+
+  async function improveWording() {
+    const text = els.input.value.trim();
+    if (!text) return;
+    els.improve.textContent = "Improving…";
+    els.improve.disabled = true;
+    try {
+      const result = await bridge.processMessage({ text, sourceLanguage: els.source.value, targetLanguage: els.source.value, mode: "improve", recentMessages: conversationMemory });
+      els.input.value = result.improvedText || result.translatedText || text;
+    } catch (error) {
+      showVoiceStatus(`Wording improvement unavailable: ${error.message}`, false);
+    } finally {
+      els.improve.textContent = "Improve wording";
+      els.improve.disabled = false;
+      els.input.focus();
+    }
+  }
+
+  function showVoiceStatus(message, persistent = true) {
+    els.voiceStatus.textContent = message;
+    els.voiceStatus.hidden = false;
+    if (!persistent) setTimeout(() => { els.voiceStatus.hidden = true; }, 4500);
+  }
+
+  function setupSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      els.mic.disabled = true;
+      els.mic.title = "Speech recognition is not supported in this browser.";
+      return;
+    }
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onstart = () => {
+      isListening = true;
+      els.mic.classList.add("listening");
+      showVoiceStatus("Listening… Speak naturally. Your transcript remains editable.");
+    };
+    recognition.onresult = (event) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += transcript; else interimText += transcript;
+      }
+      if (finalText) els.input.value = `${els.input.value}${els.input.value.trim() ? " " : ""}${finalText}`.trimStart();
+      els.voiceStatus.textContent = interimText ? `Listening… ${interimText}` : "Listening… Your transcript is ready to review.";
+    };
+    recognition.onerror = (event) => showVoiceStatus(`Voice input stopped: ${event.error}`, false);
+    recognition.onend = () => {
+      isListening = false;
+      els.mic.classList.remove("listening");
+      els.voiceStatus.textContent = "Voice input complete. Review and edit the transcript before sending.";
+    };
+  }
+
+  function toggleMicrophone() {
+    if (!recognition) return;
+    if (isListening) return recognition.stop();
+    recognition.lang = getLanguage(els.source.value)?.locale || "en-US";
+    recognition.start();
+  }
+
+  function clearConversation() {
+    if (!confirm("Clear this local conversation view?")) return;
+    els.messages.querySelectorAll(".message").forEach((message, index) => { if (index > 0) message.remove(); });
+    conversationMemory.length = 0;
+  }
+
+  els.send.addEventListener("click", sendMessage);
+  els.improve.addEventListener("click", improveWording);
+  els.mic.addEventListener("click", toggleMicrophone);
+  els.clear.addEventListener("click", clearConversation);
+  els.input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendMessage(); }
+  });
+  populateLanguages();
+  setupSpeechRecognition();
+})();

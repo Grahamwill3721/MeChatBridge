@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#fff8fa" />
+  <meta name="description" content="MeChat Bridge — natural cross-language communication that preserves meaning, tone and relationship." />
+  <title>MeChat Bridge</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero-panel" aria-label="MeChat Bridge hero">
+      <img class="hero-image" src="assets/mechat-bridge-hero.png" alt="Bridget beside cherry blossoms and a bridge" />
+      <div class="hero-overlay"></div>
+      <header class="brand">
+        <div class="brand-mark" aria-hidden="true">⌁</div>
+        <div><h1>MeChat <span>Bridge</span></h1><p>Bridge it. Bridget.</p></div>
+      </header>
+      <div class="hero-copy">
+        <h2>Bridge it.<br><span>Bridget.</span></h2>
+        <p>Bridging languages.<br>Connecting hearts.<br>Building understanding.</p>
+      </div>
+      <div class="book-label" aria-label="MeMadhu book">
+        <span class="book-icon" aria-hidden="true">▤</span>
+        <div><strong>MeMadhu</strong><small>Your relationship journal</small></div>
+      </div>
+    </section>
+
+    <section class="chat-panel">
+      <header class="chat-header">
+        <div class="agent-identity">
+          <div class="avatar" aria-hidden="true"><span></span><span></span></div>
+          <div><h2>MeChat Bridge</h2><p><i></i> Online</p></div>
+        </div>
+        <div class="header-actions">
+          <label class="language-pair" aria-label="Language pair">
+            <span>◉</span>
+            <select id="sourceLanguage" aria-label="Source language"></select>
+            <b>⇄</b>
+            <select id="targetLanguage" aria-label="Target language"></select>
+          </label>
+          <button class="icon-button" id="clearChatButton" title="Clear conversation" aria-label="Clear conversation">⋯</button>
+        </div>
+      </header>
+
+      <div class="privacy-strip">Secure, private and respectful conversations. Your original message is always preserved.</div>
+
+      <section id="messages" class="messages" aria-live="polite" aria-label="Conversation">
+        <article class="message assistant">
+          <div class="message-avatar" aria-hidden="true">☺</div>
+          <div class="bubble">
+            <strong>MeChat Bridge</strong>
+            <p>Speak or type naturally. I will transcribe, help refine your wording, and bridge your message into the recipient’s language while preserving meaning and tone.</p>
+            <time>Ready</time>
+          </div>
+        </article>
+      </section>
+
+      <section class="composer-card">
+        <div class="capability-row" aria-label="Communication capabilities">
+          <div><span>◉</span><p><b>Voice Input</b><small>Speak naturally</small></p></div>
+          <div><span>▣</span><p><b>Transcribe</b><small>Editable text</small></p></div>
+          <div><span>✎</span><p><b>Improve Wording</b><small>Clearer phrasing</small></p></div>
+          <div><span>◇</span><p><b>Context Preserve</b><small>Meaning stays intact</small></p></div>
+        </div>
+        <div id="voiceStatus" class="voice-status" hidden></div>
+        <div class="composer">
+          <textarea id="messageInput" rows="3" maxlength="3000" placeholder="Talk to MeChat Bridge…&#10;Voice, text or type your message here…"></textarea>
+          <div class="composer-actions">
+            <button id="improveButton" class="text-button" type="button">Improve wording</button>
+            <button id="micButton" class="round-button mic" type="button" aria-label="Start voice input">●</button>
+            <button id="sendButton" class="round-button send" type="button" aria-label="Send message">➤</button>
+          </div>
+        </div>
+        <p class="composer-note">Voice is input only. Review and edit the transcript before sending.</p>
+      </section>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="mechat-bridge.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
