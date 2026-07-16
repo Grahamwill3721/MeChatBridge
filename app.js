@@ -962,9 +962,10 @@
       index += 1
     ) {
       const petal =
-        document.createElement("span");
+  document.createElement("span");
 
-      petal.className = "petal";
+petal.className = "petal";
+petal.textContent = "🌸";
 
       petal.style.left =
         `${8 + Math.random() * 74}%`;
