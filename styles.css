@@ -551,6 +551,8 @@ select:disabled {
   font-size: 15px;
   line-height: 1.5;
 
+  white-space: pre-line;
+
   box-shadow:
     0 9px 26px rgba(85, 56, 64, 0.065);
 }
