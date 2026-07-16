@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <meta
+    name="description"
+    content="MeChat — a calm conversational interface for the MeAI ecosystem."
+  />
+
+  <meta
+    name="theme-color"
+    content="#f4dce2"
+  />
+
+  <title>MeChat</title>
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <main class="app-shell">
+
+    <!-- Left scenic environment -->
+    <section
+      class="scene-panel"
+      aria-label="Cherry blossoms, mountain and lake"
+    >
+      <div
+        class="landscape-background"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="scene-overlay"
+        aria-hidden="true"
+      ></div>
+
+      <div class="brand-card">
+        <div class="brand-flower" aria-hidden="true">
+          🌸
+        </div>
+
+        <div>
+          <div class="brand-name">MeChat</div>
+
+          <div class="brand-description">
+            Connecting Communities through Calm Conversations and Clear Thinking 
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="petalLayer"
+        class="petal-layer"
+        aria-hidden="true"
+      ></div>
+    </section>
+
+
+    <!-- Right chat interface -->
+    <section class="chat-panel">
+
+      <header class="chat-header">
+        <div class="header-companion" aria-hidden="true">
+          <span class="header-eye"></span>
+          <span class="header-eye"></span>
+          <span class="header-mouth"></span>
+        </div>
+
+        <div class="header-text">
+          <h1>MeChat</h1>
+          <p id="connectionStatus">Prototype mode</p>
+        </div>
+
+        <button
+          id="soundToggle"
+          class="header-button"
+          type="button"
+          aria-label="Toggle spoken replies"
+          title="Toggle spoken replies"
+        >
+          🔊
+        </button>
+      </header>
+
+
+      <div
+        id="messages"
+        class="messages"
+        aria-live="polite"
+      >
+        <article class="message-row assistant-row">
+
+          <div
+            class="companion"
+            data-state="idle"
+            aria-label="MeChat companion"
+          >
+            <div class="face">
+              <span class="eye eye-left"></span>
+              <span class="eye eye-right"></span>
+              <span class="mouth"></span>
+            </div>
+          </div>
+
+          <div class="message-column">
+            <div class="bubble assistant-bubble">
+              Hello, I’m MeChat. This prototype is here to test
+              the companion, conversation style, voice and overall
+              feeling of the MeAI interface.
+            </div>
+
+            <span class="message-time">Now</span>
+          </div>
+
+        </article>
+      </div>
+
+
+      <form
+        id="chatForm"
+        class="composer"
+      >
+        <div class="speech-input">
+
+          <textarea
+            id="messageInput"
+            rows="1"
+            placeholder="Talk to MeChat…"
+            aria-label="Message MeChat"
+          ></textarea>
+
+          <button
+            id="micButton"
+            class="composer-button"
+            type="button"
+            aria-label="Use voice input"
+            title="Use voice input"
+          >
+            🎙️
+          </button>
+
+          <button
+            id="sendButton"
+            class="send-button"
+            type="submit"
+            aria-label="Send message"
+            title="Send message"
+          >
+            ➤
+          </button>
+
+        </div>
+
+        <div class="composer-note">
+          Connecting Communities through Calm Conversations and Clear Thinking 
+        </div>
+      </form>
+
+    </section>
+  </main>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f6dfe4" />
+  <meta name="description" content="MeChat — a calm conversational prototype for the MeAI ecosystem." />
+  <title>MeChat</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="scene-panel" aria-label="Sakura mountain landscape">
+      <div class="landscape-background" aria-hidden="true"></div>
+      <div class="scene-overlay" aria-hidden="true"></div>
+      <div id="petalLayer" class="petal-layer" aria-hidden="true"></div>
+    </section>
+
+    <section class="chat-panel">
+      <header class="chat-header">
+        <div class="assistant-mini" aria-hidden="true">
+          <span class="mini-eye"></span><span class="mini-eye"></span>
+        </div>
+        <div>
+          <h1>MeChat</h1>
+          <p id="connectionStatus">Ready to connect</p>
+        </div>
+        <button id="soundToggle" class="icon-button" aria-label="Toggle spoken replies" title="Toggle spoken replies">🔊</button>
+      </header>
+
+      <div id="messages" class="messages" aria-live="polite">
+        <article class="message-row assistant-row">
+          <div class="companion" data-state="idle" aria-label="MeChat companion">
+            <div class="face">
+              <span class="eye left"></span>
+              <span class="eye right"></span>
+              <span class="mouth"></span>
+            </div>
+          </div>
+          <div class="bubble assistant-bubble">
+            Hello, Graham. I’m MeChat. This prototype is here to test the companion, conversation style, voice and overall feeling of the MeAI interface.
+          </div>
+        </article>
+      </div>
+
+      <form id="chatForm" class="composer">
+        <div class="speech-input">
+          <textarea id="messageInput" rows="1" placeholder="Talk to MeChat…" aria-label="Message MeChat"></textarea>
+          <button type="button" id="micButton" class="composer-button" aria-label="Use voice input">🎙️</button>
+          <button type="submit" id="sendButton" class="send-button" aria-label="Send message">➤</button>
+        </div>
+        <div class="composer-note">Enter to send · Shift + Enter for a new line</div>
+      </form>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
