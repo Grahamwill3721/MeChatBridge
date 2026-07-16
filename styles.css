@@ -151,7 +151,7 @@ select:disabled {
   z-index: 5;
 
   left: 20px;
-  bottom: 8px;
+  bottom: 0px;
 
   display: flex;
   align-items: center;
