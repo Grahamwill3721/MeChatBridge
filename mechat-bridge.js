@@ -6,7 +6,9 @@
       this.config = config;
 
       this.conversationId =
-        localStorage.getItem("mechatBridgeConversationId") ||
+        localStorage.getItem(
+          "mechatBridgeConversationId"
+        ) ||
         this.createConversationId();
 
       localStorage.setItem(
@@ -36,33 +38,56 @@
       recentMessages = []
     }) {
       const payload = {
-        conversationId: this.conversationId,
-        timestamp: new Date().toISOString(),
+        conversationId:
+          this.conversationId,
+
+        timestamp:
+          new Date().toISOString(),
+
         mode,
+
         sourceLanguage,
+
         targetLanguage,
-        originalText: String(text || "").trim(),
+
+        originalText:
+          String(text || "").trim(),
+
         relationshipContext: {
-          ...(this.config.relationshipContext || {}),
-          ...(this.config.conversationProfile || {}),
-          ...(this.config.translationCapability || {})
+          ...(this.config
+            .relationshipContext || {}),
+
+          ...(this.config
+            .conversationProfile || {}),
+
+          ...(this.config
+            .translationCapability || {})
         },
-        recentMessages: Array.isArray(recentMessages)
-          ? recentMessages.slice(-8)
-          : []
+
+        recentMessages:
+          Array.isArray(recentMessages)
+            ? recentMessages.slice(-8)
+            : []
       };
 
       if (!payload.originalText) {
-        throw new Error("The message is empty.");
+        throw new Error(
+          "The message is empty."
+        );
       }
 
-      const webhookUrl = String(
-        this.config.webhookUrl || ""
-      ).trim();
+      const webhookUrl =
+        String(
+          this.config.webhookUrl || ""
+        ).trim();
 
       if (!webhookUrl) {
-        if (this.config.demoMode !== false) {
-          return this.createDemoResponse(payload);
+        if (
+          this.config.demoMode !== false
+        ) {
+          return this.createDemoResponse(
+            payload
+          );
         }
 
         throw new Error(
@@ -95,20 +120,24 @@
         );
 
       try {
-        const response = await fetch(
-          webhookUrl,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body:
-              JSON.stringify(payload),
-            signal:
-              controller.signal
-          }
-        );
+        const response =
+          await fetch(
+            webhookUrl,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify(payload),
+
+              signal:
+                controller.signal
+            }
+          );
 
         if (!response.ok) {
           const responseText =
@@ -128,7 +157,9 @@
           payload
         );
       } finally {
-        window.clearTimeout(timeoutId);
+        window.clearTimeout(
+          timeoutId
+        );
       }
     }
 
@@ -150,29 +181,73 @@
         );
       }
 
-      return {
-        translatedText:
+      const englishText =
+        String(
+          result.englishText || ""
+        ).trim();
+
+      const nepaliText =
+        String(
+          result.nepaliText || ""
+        ).trim();
+
+      const romanNepaliText =
+        String(
+          result.romanNepaliText ||
+          result.romanizedText ||
+          ""
+        ).trim();
+
+      const translatedText =
+        String(
           result.translatedText ||
           result.translation ||
           result.output ||
           result.text ||
-          "",
+          nepaliText ||
+          englishText ||
+          ""
+        ).trim();
+
+      return {
+        translatedText,
+
+        englishText,
+
+        nepaliText,
+
+        romanNepaliText,
+
+        romanizedText:
+          romanNepaliText,
+
+        detectedLanguage:
+          String(
+            result.detectedLanguage ||
+            ""
+          ).trim(),
 
         improvedText:
-          result.improvedText ||
-          result.refinedText ||
-          "",
+          String(
+            result.improvedText ||
+            result.refinedText ||
+            ""
+          ).trim(),
 
         originalText:
-          result.originalText ||
-          payload.originalText,
+          String(
+            result.originalText ||
+            payload.originalText
+          ).trim(),
 
         sourceLanguage:
           result.sourceLanguage ||
+          result.senderLanguage ||
           payload.sourceLanguage,
 
         targetLanguage:
           result.targetLanguage ||
+          result.recipientLanguage ||
           payload.targetLanguage,
 
         confidence:
@@ -191,8 +266,24 @@
           ),
 
         clarificationQuestion:
-          result.clarificationQuestion ||
-          ""
+          String(
+            result.clarificationQuestion ||
+            ""
+          ).trim(),
+
+        conversationId:
+          result.conversationId ||
+          payload.conversationId,
+
+        fromUser:
+          result.fromUser || null,
+
+        toUser:
+          result.toUser || null,
+
+        timestamp:
+          result.timestamp ||
+          payload.timestamp
       };
     }
 
@@ -210,6 +301,17 @@
 
           translatedText: "",
 
+          englishText: "",
+
+          nepaliText: "",
+
+          romanNepaliText: "",
+
+          romanizedText: "",
+
+          detectedLanguage:
+            payload.sourceLanguage,
+
           sourceLanguage:
             payload.sourceLanguage,
 
@@ -222,18 +324,46 @@
 
           needsClarification: false,
 
-          clarificationQuestion: ""
+          clarificationQuestion: "",
+
+          conversationId:
+            payload.conversationId,
+
+          timestamp:
+            payload.timestamp
         });
       }
+
+      const prototypeText =
+        `[Prototype ${String(
+          payload.targetLanguage
+        ).toUpperCase()}] ${payload.originalText}`;
 
       return Promise.resolve({
         originalText:
           payload.originalText,
 
         translatedText:
-          `[Prototype ${String(
-            payload.targetLanguage
-          ).toUpperCase()}] ${payload.originalText}`,
+          prototypeText,
+
+        englishText:
+          payload.targetLanguage === "en"
+            ? prototypeText
+            : "",
+
+        nepaliText:
+          payload.targetLanguage === "ne"
+            ? prototypeText
+            : "",
+
+        romanNepaliText:
+          "",
+
+        romanizedText:
+          "",
+
+        detectedLanguage:
+          payload.sourceLanguage,
 
         improvedText: "",
 
@@ -249,7 +379,13 @@
 
         needsClarification: false,
 
-        clarificationQuestion: ""
+        clarificationQuestion: "",
+
+        conversationId:
+          payload.conversationId,
+
+        timestamp:
+          payload.timestamp
       });
     }
   }
