@@ -650,9 +650,7 @@ let conversationSyncRunning = false;
 
     ensureDifferentLanguages();
   }
-    return conversationMemory.slice(-8);
-  }
-
+   
 
   /* -------------------------------------------------- */
   /* SEND MESSAGE                                       */
