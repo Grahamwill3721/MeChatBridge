@@ -632,24 +632,24 @@ let conversationSyncRunning = false;
   }
 
   function configureParticipantLanguages() {
-    if (
-      bridge.currentUser === "fulmaya"
-    ) {
-      elements.sourceLanguage.value =
-        "ne";
+  if (
+    bridge.currentUser === "fulmaya"
+  ) {
+    elements.sourceLanguage.value =
+      "ne";
 
-      elements.targetLanguage.value =
-        "en";
-    } else {
-      elements.sourceLanguage.value =
-        "en";
+    elements.targetLanguage.value =
+      "en";
+  } else {
+    elements.sourceLanguage.value =
+      "en";
 
-      elements.targetLanguage.value =
-        "ne";
-    }
-
-    ensureDifferentLanguages();
+    elements.targetLanguage.value =
+      "ne";
   }
+
+  ensureDifferentLanguages();
+}
    
 
   /* -------------------------------------------------- */
