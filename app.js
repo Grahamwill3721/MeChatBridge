@@ -30,6 +30,11 @@
   let isListening = false;
 
   const conversationMemory = [];
+  const displayedDatabaseMessages =
+  new Set();
+
+let conversationSyncTimer = null;
+let conversationSyncRunning = false;
 
 
   /* -------------------------------------------------- */
