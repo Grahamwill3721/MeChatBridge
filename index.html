@@ -10,10 +10,10 @@
 
   <meta
     name="description"
-    content="MeChat Bridge enables natural communication across languages while preserving meaning, tone, context and relationship."
+    content="MeChat Bridge enables natural cross-language communication while preserving meaning, tone, context, respect and relationship."
   >
 
-  <meta name="theme-color" content="#fff4f7">
+  <meta name="theme-color" content="#fff1f5">
 
   <title>MeChat Bridge</title>
 
@@ -43,7 +43,7 @@
     href="assets/apple-touch-icon.png"
   >
 
-  <!-- Styles -->
+  <!-- Main stylesheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -51,8 +51,14 @@
 
   <main class="app-shell">
 
-    <!-- LEFT HERO PANEL -->
-    <section class="hero-panel" aria-label="MeChat Bridge">
+    <!-- ===================================================
+         LEFT HERO PANEL
+         =================================================== -->
+
+    <section
+      class="hero-panel"
+      aria-label="MeChat Bridge introduction"
+    >
 
       <img
         class="hero-image"
@@ -62,21 +68,32 @@
 
       <div class="hero-overlay"></div>
 
+
+      <!-- Brand -->
+
       <header class="brand">
 
-        <div class="brand-icon" aria-hidden="true">
+        <div
+          class="brand-icon"
+          aria-hidden="true"
+        >
           🌉
         </div>
 
         <div class="brand-text">
+
           <h1>
             MeChat <span>Bridge</span>
           </h1>
 
           <p>Bridge it. Bridget.</p>
+
         </div>
 
       </header>
+
+
+      <!-- Hero message -->
 
       <section class="hero-copy">
 
@@ -93,9 +110,18 @@
 
       </section>
 
-      <section class="me-madhu-book" aria-label="MeMadhu book">
 
-        <span class="book-icon" aria-hidden="true">
+      <!-- MeMadhu -->
+
+      <section
+        class="me-madhu-book"
+        aria-label="MeMadhu relationship journal"
+      >
+
+        <span
+          class="book-icon"
+          aria-hidden="true"
+        >
           📖
         </span>
 
@@ -109,25 +135,35 @@
     </section>
 
 
-    <!-- RIGHT CHAT PANEL -->
+    <!-- ===================================================
+         RIGHT CHAT PANEL
+         =================================================== -->
+
     <section class="chat-panel">
+
+      <!-- Header -->
 
       <header class="chat-header">
 
         <div class="agent-identity">
 
-          <div class="avatar" aria-hidden="true">
+          <div
+            class="avatar"
+            aria-hidden="true"
+          >
             <span></span>
             <span></span>
           </div>
 
           <div>
+
             <h2>MeChat Bridge</h2>
 
             <p>
               <i></i>
               Online
             </p>
+
           </div>
 
         </div>
@@ -137,17 +173,21 @@
 
           <label
             class="language-pair"
-            aria-label="Select conversation languages"
+            aria-label="Select source and target languages"
           >
 
-            <span aria-hidden="true">🌐</span>
+            <span aria-hidden="true">
+              🌐
+            </span>
 
             <select
               id="sourceLanguage"
               aria-label="Source language"
             ></select>
 
-            <b aria-hidden="true">⇄</b>
+            <b aria-hidden="true">
+              ⇄
+            </b>
 
             <select
               id="targetLanguage"
@@ -172,13 +212,16 @@
       </header>
 
 
+      <!-- Privacy message -->
+
       <div class="privacy-strip">
         Secure, private and respectful conversations.
         Your original message is always preserved.
       </div>
 
 
-      <!-- CHAT MESSAGES -->
+      <!-- Conversation -->
+
       <section
         id="messages"
         class="messages"
@@ -215,8 +258,13 @@
       </section>
 
 
-      <!-- MESSAGE COMPOSER -->
+      <!-- =================================================
+           MESSAGE COMPOSER
+           ================================================= -->
+
       <section class="composer-card">
+
+        <!-- Capabilities -->
 
         <div
           class="capability-row"
@@ -224,46 +272,64 @@
         >
 
           <div>
-            <span aria-hidden="true">🎙</span>
+
+            <span aria-hidden="true">
+              🎙
+            </span>
 
             <p>
               <b>Voice Input</b>
               <small>Speak naturally</small>
             </p>
+
           </div>
 
 
           <div>
-            <span aria-hidden="true">▣</span>
+
+            <span aria-hidden="true">
+              ▣
+            </span>
 
             <p>
               <b>Transcribe</b>
               <small>Editable text</small>
             </p>
+
           </div>
 
 
           <div>
-            <span aria-hidden="true">✎</span>
+
+            <span aria-hidden="true">
+              ✎
+            </span>
 
             <p>
               <b>Improve Wording</b>
               <small>Clearer phrasing</small>
             </p>
+
           </div>
 
 
           <div>
-            <span aria-hidden="true">◇</span>
+
+            <span aria-hidden="true">
+              ◇
+            </span>
 
             <p>
               <b>Preserve Context</b>
               <small>Meaning stays intact</small>
             </p>
+
           </div>
 
         </div>
 
+
+        <!-- Voice status -->
 
         <div
           id="voiceStatus"
@@ -272,16 +338,18 @@
         ></div>
 
 
+        <!-- Input -->
+
         <div class="composer">
 
           <textarea
             id="messageInput"
             rows="3"
             maxlength="3000"
+            aria-label="Message"
             placeholder="Talk to MeChat Bridge…
 
 Speak or type your message here."
-            aria-label="Message"
           ></textarea>
 
 
@@ -334,7 +402,8 @@ Speak or type your message here."
   </main>
 
 
-  <!-- JavaScript: order is important -->
+  <!-- JavaScript order is important -->
+
   <script src="config.js"></script>
   <script src="mechat-bridge.js"></script>
   <script src="app.js"></script>
