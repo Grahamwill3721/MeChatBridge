@@ -535,11 +535,18 @@
 
       const translatedText =
   result.translatedText ||
+  result.nepaliText ||
+  result.englishText ||
   "No translation was returned.";
 
+const romanText =
+  result.romanNepaliText ||
+  result.romanizedText ||
+  "";
+
 const displayText =
-  result.romanizedText
-    ? `${translatedText}\n\n${result.romanizedText}`
+  romanText
+    ? `${translatedText}\n\n${romanText}`
     : translatedText;
 
 addMessage({
@@ -566,7 +573,7 @@ conversationMemory.push({
   timestamp:
     new Date().toISOString()
 });
-
+      
       setConnectionStatus("Online");
     } catch (error) {
       console.error(
