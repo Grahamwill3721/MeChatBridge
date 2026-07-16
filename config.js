@@ -11,23 +11,17 @@ window.MECHAT_CONFIG = {
 
   version: "1.0.0",
 
-  /**
-   * Paste the active n8n Production Webhook URL here.
-   *
-   * Example:
-   * https://your-n8n-domain.com/webhook/mechat-bridge
-   */
-  webhookUrl: "https://arkdaia2.app.n8n.cloud/webhook/mechatbridgev1",
+webhookUrl:
+  "https://arkdaia2.app.n8n.cloud/webhook/mechatbridgev1",
 
-  /**
-   * Keep demo mode enabled until the n8n workflow
-   * is active and the webhook URL has been added.
-   */
-  demoMode: true,
+messagesWebhookUrl:
+  "https://arkdaia2.app.n8n.cloud/webhook/mechatbridge-messages",
 
-  requestTimeoutMs: 45000,
+demoMode: false,
 
-  defaultSourceLanguage: "en",
+requestTimeoutMs: 45000,
+
+defaultSourceLanguage: "en",
 
   defaultTargetLanguage: "ne",
 
