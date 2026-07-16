@@ -1,169 +1,343 @@
-(function () {
-  "use strict";
-  const config = window.MECHAT_CONFIG;
-  const bridge = new window.MeChatBridgeClient(config);
-  const els = {
-    source: document.getElementById("sourceLanguage"),
-    target: document.getElementById("targetLanguage"),
-    input: document.getElementById("messageInput"),
-    messages: document.getElementById("messages"),
-    send: document.getElementById("sendButton"),
-    mic: document.getElementById("micButton"),
-    improve: document.getElementById("improveButton"),
-    clear: document.getElementById("clearChatButton"),
-    voiceStatus: document.getElementById("voiceStatus")
-  };
-  let recognition = null;
-  let isListening = false;
-  const conversationMemory = [];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
-  function populateLanguages() {
-    config.languages.forEach((language) => {
-      els.source.add(new Option(language.label, language.code));
-      els.target.add(new Option(language.label, language.code));
-    });
-    els.source.value = config.defaultSourceLanguage;
-    els.target.value = config.defaultTargetLanguage;
-  }
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  const getLanguage = (code) => config.languages.find((item) => item.code === code);
-  const now = () => new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date());
-  const escapeHtml = (value) => String(value)
-    .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+  <meta
+    name="description"
+    content="MeChat Bridge enables natural communication across languages while preserving meaning, tone, context and relationship."
+  >
 
-  function appendMessage({ role, text, label, originalText = "", loading = false }) {
-    const article = document.createElement("article");
-    article.className = `message ${role}${loading ? " loading" : ""}`;
-    const avatar = role === "assistant" ? '<div class="message-avatar" aria-hidden="true">☺</div>' : "";
-    const original = originalText ? `<button class="original-toggle" type="button">Show original</button><p class="original-text" hidden>${escapeHtml(originalText)}</p>` : "";
-    article.innerHTML = `${avatar}<div class="bubble">${label ? `<strong>${escapeHtml(label)}</strong>` : ""}<p>${escapeHtml(text)}</p>${original}<time>${now()}</time></div>`;
-    const toggle = article.querySelector(".original-toggle");
-    if (toggle) toggle.addEventListener("click", () => {
-      const originalElement = article.querySelector(".original-text");
-      originalElement.hidden = !originalElement.hidden;
-      toggle.textContent = originalElement.hidden ? "Show original" : "Hide original";
-    });
-    els.messages.append(article);
-    els.messages.scrollTop = els.messages.scrollHeight;
-    return article;
-  }
+  <meta name="theme-color" content="#fff4f7">
 
-  function setBusy(value) {
-    els.send.disabled = value;
-    els.improve.disabled = value;
-    els.input.disabled = value;
-  }
+  <title>MeChat Bridge</title>
 
-  async function sendMessage() {
-    const text = els.input.value.trim();
-    if (!text) return;
-    const sourceLanguage = els.source.value;
-    const targetLanguage = els.target.value;
-    appendMessage({ role: "user", text, label: `You · ${getLanguage(sourceLanguage)?.label || sourceLanguage}` });
-    conversationMemory.push({ role: "user", text, language: sourceLanguage });
-    els.input.value = "";
-    setBusy(true);
-    const pending = appendMessage({ role: "assistant", text: "Bridging your message", label: "MeChat Bridge", loading: true });
-    try {
-      const result = await bridge.processMessage({ text, sourceLanguage, targetLanguage, mode: "translate", recentMessages: conversationMemory });
-      pending.remove();
-      if (result.needsClarification && result.clarificationQuestion) {
-        appendMessage({ role: "assistant", text: result.clarificationQuestion, label: "Clarification needed" });
-        return;
-      }
-      appendMessage({
-        role: "assistant",
-        text: result.translatedText || "No translation was returned.",
-        originalText: result.originalText,
-        label: `MeChat Bridge · ${getLanguage(targetLanguage)?.label || targetLanguage}`
-      });
-      conversationMemory.push({ role: "assistant", text: result.translatedText, originalText: result.originalText, language: targetLanguage });
-    } catch (error) {
-      pending.remove();
-      appendMessage({ role: "assistant", text: error.name === "AbortError" ? "The request timed out. Please try again." : `I could not bridge that message: ${error.message}`, label: "Connection issue" });
-    } finally {
-      setBusy(false);
-      els.input.focus();
-    }
-  }
+  <!-- Favicons -->
+  <link
+    rel="icon"
+    type="image/x-icon"
+    href="assets/favicon.ico"
+  >
 
-  async function improveWording() {
-    const text = els.input.value.trim();
-    if (!text) return;
-    els.improve.textContent = "Improving…";
-    els.improve.disabled = true;
-    try {
-      const result = await bridge.processMessage({ text, sourceLanguage: els.source.value, targetLanguage: els.source.value, mode: "improve", recentMessages: conversationMemory });
-      els.input.value = result.improvedText || result.translatedText || text;
-    } catch (error) {
-      showVoiceStatus(`Wording improvement unavailable: ${error.message}`, false);
-    } finally {
-      els.improve.textContent = "Improve wording";
-      els.improve.disabled = false;
-      els.input.focus();
-    }
-  }
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="assets/favicon-32x32.png"
+  >
 
-  function showVoiceStatus(message, persistent = true) {
-    els.voiceStatus.textContent = message;
-    els.voiceStatus.hidden = false;
-    if (!persistent) setTimeout(() => { els.voiceStatus.hidden = true; }, 4500);
-  }
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="16x16"
+    href="assets/favicon-16x16.png"
+  >
 
-  function setupSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      els.mic.disabled = true;
-      els.mic.title = "Speech recognition is not supported in this browser.";
-      return;
-    }
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.onstart = () => {
-      isListening = true;
-      els.mic.classList.add("listening");
-      showVoiceStatus("Listening… Speak naturally. Your transcript remains editable.");
-    };
-    recognition.onresult = (event) => {
-      let finalText = "";
-      let interimText = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += transcript; else interimText += transcript;
-      }
-      if (finalText) els.input.value = `${els.input.value}${els.input.value.trim() ? " " : ""}${finalText}`.trimStart();
-      els.voiceStatus.textContent = interimText ? `Listening… ${interimText}` : "Listening… Your transcript is ready to review.";
-    };
-    recognition.onerror = (event) => showVoiceStatus(`Voice input stopped: ${event.error}`, false);
-    recognition.onend = () => {
-      isListening = false;
-      els.mic.classList.remove("listening");
-      els.voiceStatus.textContent = "Voice input complete. Review and edit the transcript before sending.";
-    };
-  }
+  <link
+    rel="apple-touch-icon"
+    href="assets/apple-touch-icon.png"
+  >
 
-  function toggleMicrophone() {
-    if (!recognition) return;
-    if (isListening) return recognition.stop();
-    recognition.lang = getLanguage(els.source.value)?.locale || "en-US";
-    recognition.start();
-  }
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
 
-  function clearConversation() {
-    if (!confirm("Clear this local conversation view?")) return;
-    els.messages.querySelectorAll(".message").forEach((message, index) => { if (index > 0) message.remove(); });
-    conversationMemory.length = 0;
-  }
+<body>
 
-  els.send.addEventListener("click", sendMessage);
-  els.improve.addEventListener("click", improveWording);
-  els.mic.addEventListener("click", toggleMicrophone);
-  els.clear.addEventListener("click", clearConversation);
-  els.input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendMessage(); }
-  });
-  populateLanguages();
-  setupSpeechRecognition();
-})();
+  <main class="app-shell">
+
+    <!-- LEFT HERO PANEL -->
+    <section class="hero-panel" aria-label="MeChat Bridge">
+
+      <img
+        class="hero-image"
+        src="assets/mechat-bridge-hero.png"
+        alt="Bridget surrounded by cherry blossoms beside a bridge"
+      >
+
+      <div class="hero-overlay"></div>
+
+      <header class="brand">
+
+        <div class="brand-icon" aria-hidden="true">
+          🌉
+        </div>
+
+        <div class="brand-text">
+          <h1>
+            MeChat <span>Bridge</span>
+          </h1>
+
+          <p>Bridge it. Bridget.</p>
+        </div>
+
+      </header>
+
+      <section class="hero-copy">
+
+        <h2>
+          Bridge it.
+          <span>Bridget.</span>
+        </h2>
+
+        <p>
+          Bridging languages.<br>
+          Connecting hearts.<br>
+          Building understanding.
+        </p>
+
+      </section>
+
+      <section class="me-madhu-book" aria-label="MeMadhu book">
+
+        <span class="book-icon" aria-hidden="true">
+          📖
+        </span>
+
+        <div>
+          <strong>MeMadhu</strong>
+          <small>Your relationship journal</small>
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- RIGHT CHAT PANEL -->
+    <section class="chat-panel">
+
+      <header class="chat-header">
+
+        <div class="agent-identity">
+
+          <div class="avatar" aria-hidden="true">
+            <span></span>
+            <span></span>
+          </div>
+
+          <div>
+            <h2>MeChat Bridge</h2>
+
+            <p>
+              <i></i>
+              Online
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="header-actions">
+
+          <label
+            class="language-pair"
+            aria-label="Select conversation languages"
+          >
+
+            <span aria-hidden="true">🌐</span>
+
+            <select
+              id="sourceLanguage"
+              aria-label="Source language"
+            ></select>
+
+            <b aria-hidden="true">⇄</b>
+
+            <select
+              id="targetLanguage"
+              aria-label="Target language"
+            ></select>
+
+          </label>
+
+
+          <button
+            id="clearChatButton"
+            class="icon-button"
+            type="button"
+            aria-label="Clear conversation"
+            title="Clear conversation"
+          >
+            ⋯
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <div class="privacy-strip">
+        Secure, private and respectful conversations.
+        Your original message is always preserved.
+      </div>
+
+
+      <!-- CHAT MESSAGES -->
+      <section
+        id="messages"
+        class="messages"
+        aria-live="polite"
+        aria-label="Conversation"
+      >
+
+        <article class="message assistant">
+
+          <div
+            class="message-avatar"
+            aria-hidden="true"
+          >
+            ☺
+          </div>
+
+          <div class="bubble">
+
+            <strong>MeChat Bridge</strong>
+
+            <p>
+              Speak or type naturally. I will transcribe your voice,
+              help improve your wording and bridge your message into
+              the recipient’s language while preserving meaning,
+              tone and relationship.
+            </p>
+
+            <time>Ready</time>
+
+          </div>
+
+        </article>
+
+      </section>
+
+
+      <!-- MESSAGE COMPOSER -->
+      <section class="composer-card">
+
+        <div
+          class="capability-row"
+          aria-label="MeChat Bridge capabilities"
+        >
+
+          <div>
+            <span aria-hidden="true">🎙</span>
+
+            <p>
+              <b>Voice Input</b>
+              <small>Speak naturally</small>
+            </p>
+          </div>
+
+
+          <div>
+            <span aria-hidden="true">▣</span>
+
+            <p>
+              <b>Transcribe</b>
+              <small>Editable text</small>
+            </p>
+          </div>
+
+
+          <div>
+            <span aria-hidden="true">✎</span>
+
+            <p>
+              <b>Improve Wording</b>
+              <small>Clearer phrasing</small>
+            </p>
+          </div>
+
+
+          <div>
+            <span aria-hidden="true">◇</span>
+
+            <p>
+              <b>Preserve Context</b>
+              <small>Meaning stays intact</small>
+            </p>
+          </div>
+
+        </div>
+
+
+        <div
+          id="voiceStatus"
+          class="voice-status"
+          hidden
+        ></div>
+
+
+        <div class="composer">
+
+          <textarea
+            id="messageInput"
+            rows="3"
+            maxlength="3000"
+            placeholder="Talk to MeChat Bridge…
+
+Speak or type your message here."
+            aria-label="Message"
+          ></textarea>
+
+
+          <div class="composer-actions">
+
+            <button
+              id="improveButton"
+              class="text-button"
+              type="button"
+            >
+              Improve wording
+            </button>
+
+
+            <button
+              id="micButton"
+              class="round-button mic"
+              type="button"
+              aria-label="Start voice input"
+              title="Start voice input"
+            >
+              🎙
+            </button>
+
+
+            <button
+              id="sendButton"
+              class="round-button send"
+              type="button"
+              aria-label="Send message"
+              title="Send message"
+            >
+              ➤
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <p class="composer-note">
+          Voice is used for input only. Review and edit the
+          transcript before sending.
+        </p>
+
+      </section>
+
+    </section>
+
+  </main>
+
+
+  <!-- JavaScript: order is important -->
+  <script src="config.js"></script>
+  <script src="mechat-bridge.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
