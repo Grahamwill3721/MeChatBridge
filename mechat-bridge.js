@@ -5,28 +5,60 @@
     constructor(config = {}) {
       this.config = config;
 
-      tconst pageParameters =
-  new URLSearchParams(
-    window.location.search
-  );
+      const pageParameters =
+        new URLSearchParams(
+          window.location.search
+        );
 
-this.conversationId =
-  pageParameters.get("conversation") ||
-  localStorage.getItem(
-    "mechatBridgeConversationId"
-  ) ||
-  "graham-fulmaya-001";
+      /*
+       * Both devices must use the same conversation value.
+       *
+       * Example:
+       * ?conversation=graham-fulmaya-001
+       */
+      this.conversationId =
+        pageParameters.get("conversation") ||
+        localStorage.getItem(
+          "mechatBridgeConversationId"
+        ) ||
+        "graham-fulmaya-001";
 
       localStorage.setItem(
         "mechatBridgeConversationId",
         this.conversationId
+      );
+
+      /*
+       * Identifies which participant is using this device.
+       *
+       * Laptop:
+       * ?user=graham
+       *
+       * Mobile:
+       * ?user=fulmaya
+       */
+      this.currentUser =
+        String(
+          pageParameters.get("user") ||
+          localStorage.getItem(
+            "mechatBridgeCurrentUser"
+          ) ||
+          "graham"
+        )
+          .trim()
+          .toLowerCase();
+
+      localStorage.setItem(
+        "mechatBridgeCurrentUser",
+        this.currentUser
       );
     }
 
     createConversationId() {
       if (
         typeof crypto !== "undefined" &&
-        typeof crypto.randomUUID === "function"
+        typeof crypto.randomUUID ===
+          "function"
       ) {
         return crypto.randomUUID();
       }
@@ -36,6 +68,33 @@ this.conversationId =
         .slice(2)}`;
     }
 
+    getParticipantProfile() {
+      const isGraham =
+        this.currentUser === "graham";
+
+      return {
+        fromUser:
+          isGraham
+            ? "graham"
+            : "fulmaya",
+
+        toUser:
+          isGraham
+            ? "fulmaya"
+            : "graham",
+
+        senderPreferredLanguage:
+          isGraham
+            ? "en"
+            : "ne",
+
+        recipientPreferredLanguage:
+          isGraham
+            ? "ne"
+            : "en"
+      };
+    }
+
     async processMessage({
       text,
       sourceLanguage,
@@ -43,18 +102,45 @@ this.conversationId =
       mode = "translate",
       recentMessages = []
     }) {
+      const participantProfile =
+        this.getParticipantProfile();
+
       const payload = {
         conversationId:
           this.conversationId,
+
+        fromUser:
+          participantProfile.fromUser,
+
+        toUser:
+          participantProfile.toUser,
+
+        senderPreferredLanguage:
+          participantProfile
+            .senderPreferredLanguage,
+
+        recipientPreferredLanguage:
+          participantProfile
+            .recipientPreferredLanguage,
 
         timestamp:
           new Date().toISOString(),
 
         mode,
 
-        sourceLanguage,
+        /*
+         * Keep the selected interface languages for compatibility
+         * with the existing n8n workflow.
+         */
+        sourceLanguage:
+          sourceLanguage ||
+          participantProfile
+            .senderPreferredLanguage,
 
-        targetLanguage,
+        targetLanguage:
+          targetLanguage ||
+          participantProfile
+            .recipientPreferredLanguage,
 
         originalText:
           String(text || "").trim(),
@@ -169,6 +255,120 @@ this.conversationId =
       }
     }
 
+    /*
+     * Retrieves all saved messages for the current shared
+     * conversation.
+     *
+     * This will be used by app.js when we add automatic
+     * laptop/mobile synchronisation.
+     */
+    async getConversationMessages() {
+      const messagesWebhookUrl =
+        String(
+          this.config
+            .messagesWebhookUrl || ""
+        ).trim();
+
+      if (!messagesWebhookUrl) {
+        throw new Error(
+          "The messages webhook URL has not been configured."
+        );
+      }
+
+      const requestUrl =
+        new URL(
+          messagesWebhookUrl
+        );
+
+      requestUrl.searchParams.set(
+        "conversationId",
+        this.conversationId
+      );
+
+      const controller =
+        new AbortController();
+
+      const timeoutMilliseconds =
+        Number(
+          this.config.requestTimeoutMs
+        ) || 45000;
+
+      const timeoutId =
+        window.setTimeout(
+          () => controller.abort(),
+          timeoutMilliseconds
+        );
+
+      try {
+        const response =
+          await fetch(
+            requestUrl.toString(),
+            {
+              method: "GET",
+
+              headers: {
+                Accept:
+                  "application/json"
+              },
+
+              signal:
+                controller.signal
+            }
+          );
+
+        if (!response.ok) {
+          const responseText =
+            await response.text();
+
+          throw new Error(
+            responseText ||
+            `Conversation retrieval failed with status ${response.status}.`
+          );
+        }
+
+        const data =
+          await response.json();
+
+        if (!Array.isArray(data)) {
+          return [];
+        }
+
+        return data
+          .filter(
+            (message) =>
+              message &&
+              typeof message ===
+                "object"
+          )
+          .sort(
+            (firstMessage, secondMessage) => {
+              const firstTime =
+                new Date(
+                  firstMessage.timestamp ||
+                  firstMessage.createdAt ||
+                  0
+                ).getTime();
+
+              const secondTime =
+                new Date(
+                  secondMessage.timestamp ||
+                  secondMessage.createdAt ||
+                  0
+                ).getTime();
+
+              return (
+                firstTime -
+                secondTime
+              );
+            }
+          );
+      } finally {
+        window.clearTimeout(
+          timeoutId
+        );
+      }
+    }
+
     normaliseResponse(
       data,
       payload
@@ -224,6 +424,10 @@ this.conversationId =
 
         romanNepaliText,
 
+        /*
+         * Preserve this alias because the current app.js
+         * also checks result.romanizedText.
+         */
         romanizedText:
           romanNepaliText,
 
@@ -256,6 +460,18 @@ this.conversationId =
           result.recipientLanguage ||
           payload.targetLanguage,
 
+        senderPreferredLanguage:
+          result
+            .senderPreferredLanguage ||
+          payload
+            .senderPreferredLanguage,
+
+        recipientPreferredLanguage:
+          result
+            .recipientPreferredLanguage ||
+          payload
+            .recipientPreferredLanguage,
+
         confidence:
           Number(
             result.confidence ?? 0.9
@@ -273,7 +489,8 @@ this.conversationId =
 
         clarificationQuestion:
           String(
-            result.clarificationQuestion ||
+            result
+              .clarificationQuestion ||
             ""
           ).trim(),
 
@@ -282,14 +499,25 @@ this.conversationId =
           payload.conversationId,
 
         fromUser:
-          result.fromUser || null,
+          result.fromUser ||
+          payload.fromUser,
 
         toUser:
-          result.toUser || null,
+          result.toUser ||
+          payload.toUser,
 
         timestamp:
           result.timestamp ||
-          payload.timestamp
+          payload.timestamp,
+
+        id:
+          result.id ?? null,
+
+        createdAt:
+          result.createdAt || "",
+
+        updatedAt:
+          result.updatedAt || ""
       };
     }
 
@@ -324,6 +552,14 @@ this.conversationId =
           targetLanguage:
             payload.sourceLanguage,
 
+          senderPreferredLanguage:
+            payload
+              .senderPreferredLanguage,
+
+          recipientPreferredLanguage:
+            payload
+              .recipientPreferredLanguage,
+
           confidence: 0.5,
 
           ambiguityDetected: false,
@@ -334,6 +570,12 @@ this.conversationId =
 
           conversationId:
             payload.conversationId,
+
+          fromUser:
+            payload.fromUser,
+
+          toUser:
+            payload.toUser,
 
           timestamp:
             payload.timestamp
@@ -362,11 +604,9 @@ this.conversationId =
             ? prototypeText
             : "",
 
-        romanNepaliText:
-          "",
+        romanNepaliText: "",
 
-        romanizedText:
-          "",
+        romanizedText: "",
 
         detectedLanguage:
           payload.sourceLanguage,
@@ -379,6 +619,14 @@ this.conversationId =
         targetLanguage:
           payload.targetLanguage,
 
+        senderPreferredLanguage:
+          payload
+            .senderPreferredLanguage,
+
+        recipientPreferredLanguage:
+          payload
+            .recipientPreferredLanguage,
+
         confidence: 0.5,
 
         ambiguityDetected: false,
@@ -389,6 +637,12 @@ this.conversationId =
 
         conversationId:
           payload.conversationId,
+
+        fromUser:
+          payload.fromUser,
+
+        toUser:
+          payload.toUser,
 
         timestamp:
           payload.timestamp
