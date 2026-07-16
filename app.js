@@ -534,33 +534,38 @@
       }
 
       const translatedText =
-        result.translatedText ||
-        "No translation was returned.";
+  result.translatedText ||
+  "No translation was returned.";
 
-      addMessage({
-        text: translatedText,
-        role: "assistant",
-        originalText:
-          result.originalText ||
-          originalText,
-        label:
-          `MeChat Bridge · ${getLanguageName(
-            targetLanguage
-          )}`
-      });
+const displayText =
+  result.romanizedText
+    ? `${translatedText}\n\n${result.romanizedText}`
+    : translatedText;
 
-      conversationMemory.push({
-        role: "assistant",
-        text: translatedText,
-        originalText:
-          result.originalText ||
-          originalText,
-        language: targetLanguage,
-        confidence:
-          result.confidence,
-        timestamp:
-          new Date().toISOString()
-      });
+addMessage({
+  text: displayText,
+  role: "assistant",
+  originalText:
+    result.originalText ||
+    originalText,
+  label:
+    `MeChat Bridge · ${getLanguageName(
+      targetLanguage
+    )}`
+});
+
+conversationMemory.push({
+  role: "assistant",
+  text: displayText,
+  originalText:
+    result.originalText ||
+    originalText,
+  language: targetLanguage,
+  confidence:
+    result.confidence,
+  timestamp:
+    new Date().toISOString()
+});
 
       setConnectionStatus("Online");
     } catch (error) {
