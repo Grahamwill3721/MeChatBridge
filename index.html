@@ -1,1 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="MeChat Bridge enables natural cross-language communication while preserving meaning, context, tone, respect and relationship."
+  >
+
+  <meta
+    name="theme-color"
+    content="#f4dce2"
+  >
+
+  <title>MeChat Bridge</title>
+
+  <!-- Favicons -->
+  <link
+    rel="icon"
+    type="image/x-icon"
+    href="assets/favicon.ico"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="assets/favicon-32x32.png"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="16x16"
+    href="assets/favicon-16x16.png"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="assets/apple-touch-icon.png"
+  >
+
+  <!-- Main stylesheet -->
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
+</head>
+
+<body>
+
+  <main class="app-shell">
+
+    <!-- ================================================
+         LEFT: BRIDGET HERO ENVIRONMENT
+         ================================================ -->
+
+    <section
+      class="scene-panel"
+      aria-label="Bridget beside cherry blossoms and a bridge"
+    >
+
+      <div
+        class="landscape-background"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="scene-overlay"
+        aria-hidden="true"
+      ></div>
+
+
+      <!-- Brand card -->
+
+      <div class="brand-card">
+
+        <div
+          class="brand-flower"
+          aria-hidden="true"
+        >
+          🌸
+        </div>
+
+        <div>
+
+          <div class="brand-name">
+            MeChat Bridge
+          </div>
+
+          <div class="brand-description">
+            Bridge it. Bridget.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Optional hero statement -->
+
+      <div class="scene-caption">
+        Bridging languages.<br>
+        Connecting hearts.<br>
+        Building understanding.
+      </div>
+
+
+      <!-- Animated sakura petals -->
+
+      <div
+        id="petalLayer"
+        class="petal-layer"
+        aria-hidden="true"
+      ></div>
+
+    </section>
+
+
+    <!-- ================================================
+         RIGHT: CHAT INTERFACE
+         ================================================ -->
+
+    <section class="chat-panel">
+
+      <!-- Header -->
+
+      <header class="chat-header">
+
+        <div
+          class="header-companion"
+          aria-hidden="true"
+        >
+          <span class="header-eye"></span>
+          <span class="header-eye"></span>
+          <span class="header-mouth"></span>
+        </div>
+
+
+        <div class="header-text">
+
+          <h1>MeChat Bridge</h1>
+
+          <p id="connectionStatus">
+            Online
+          </p>
+
+        </div>
+
+
+        <!-- Language controls -->
+
+        <div class="header-actions">
+
+          <label
+            class="language-pair"
+            aria-label="Select source and target languages"
+          >
+
+            <span aria-hidden="true">
+              🌐
+            </span>
+
+            <select
+              id="sourceLanguage"
+              aria-label="Source language"
+            ></select>
+
+            <b aria-hidden="true">
+              ⇄
+            </b>
+
+            <select
+              id="targetLanguage"
+              aria-label="Target language"
+            ></select>
+
+          </label>
+
+
+          <button
+            id="clearChatButton"
+            class="header-button"
+            type="button"
+            aria-label="Clear conversation"
+            title="Clear conversation"
+          >
+            ⋯
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <!-- Conversation messages -->
+
+      <div
+        id="messages"
+        class="messages"
+        aria-live="polite"
+        aria-label="MeChat Bridge conversation"
+      >
+
+        <article class="message message-row assistant assistant-row">
+
+          <div
+            class="message-avatar companion"
+            data-state="idle"
+            aria-label="MeChat Bridge companion"
+          >
+
+            <div class="face">
+
+              <span class="eye eye-left"></span>
+              <span class="eye eye-right"></span>
+              <span class="mouth"></span>
+
+            </div>
+
+          </div>
+
+
+          <div class="message-column">
+
+            <div class="bubble assistant-bubble">
+
+              <strong>MeChat Bridge</strong>
+
+              <p>
+                Speak or type naturally. I will transcribe your voice,
+                help improve your wording and bridge your message into
+                the recipient’s language while preserving meaning,
+                tone and relationship.
+              </p>
+
+              <time class="message-time">
+                Ready
+              </time>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+
+
+      <!-- ==============================================
+           MESSAGE COMPOSER
+           ============================================== -->
+
+      <section class="composer">
+
+        <!-- Voice transcription status -->
+
+        <div
+          id="voiceStatus"
+          class="voice-status"
+          hidden
+        ></div>
+
+
+        <div class="speech-input">
+
+          <textarea
+            id="messageInput"
+            rows="1"
+            maxlength="3000"
+            placeholder="Speak or type your message…"
+            aria-label="Message MeChat Bridge"
+          ></textarea>
+
+
+          <button
+            id="improveButton"
+            class="improve-button"
+            type="button"
+            aria-label="Improve message wording"
+            title="Improve wording"
+          >
+            Improve
+          </button>
+
+
+          <button
+            id="micButton"
+            class="composer-button"
+            type="button"
+            aria-label="Use voice input"
+            title="Use voice input"
+          >
+            🎙️
+          </button>
+
+
+          <button
+            id="sendButton"
+            class="send-button"
+            type="button"
+            aria-label="Send message"
+            title="Send message"
+          >
+            ➤
+          </button>
+
+        </div>
+
+
+        <div class="composer-note">
+          Voice is used for input only. Review and edit the transcript
+          before sending.
+        </div>
+
+      </section>
+
+    </section>
+
+  </main>
+
+
+  <!-- JavaScript order is essential -->
+
+  <script src="config.js"></script>
+  <script src="mechat-bridge.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
