@@ -5,11 +5,17 @@
     constructor(config = {}) {
       this.config = config;
 
-      this.conversationId =
-        localStorage.getItem(
-          "mechatBridgeConversationId"
-        ) ||
-        this.createConversationId();
+      tconst pageParameters =
+  new URLSearchParams(
+    window.location.search
+  );
+
+this.conversationId =
+  pageParameters.get("conversation") ||
+  localStorage.getItem(
+    "mechatBridgeConversationId"
+  ) ||
+  "graham-fulmaya-001";
 
       localStorage.setItem(
         "mechatBridgeConversationId",
