@@ -435,11 +435,221 @@ let conversationSyncRunning = false;
   }
 
 
-  /* -------------------------------------------------- */
+    /* -------------------------------------------------- */
   /* CONVERSATION CONTEXT                               */
   /* -------------------------------------------------- */
 
   function getRecentConversation() {
+    return conversationMemory.slice(-8);
+  }
+
+  /* -------------------------------------------------- */
+  /* SHARED CONVERSATION SYNCHRONISATION                */
+  /* -------------------------------------------------- */
+
+  function createDatabaseMessageKey(message) {
+    if (
+      message.id !== undefined &&
+      message.id !== null
+    ) {
+      return `id-${message.id}`;
+    }
+
+    return [
+      message.conversationId || "",
+      message.fromUser || "",
+      message.toUser || "",
+      message.timestamp ||
+        message.createdAt ||
+        "",
+      message.originalText || ""
+    ].join("|");
+  }
+
+  function getIncomingMessageText(message) {
+    /*
+     * Graham receives English.
+     */
+    if (bridge.currentUser === "graham") {
+      return (
+        message.englishText ||
+        message.translatedText ||
+        message.originalText ||
+        ""
+      );
+    }
+
+    /*
+     * Fulmaya receives Devanagari Nepali together
+     * with Roman-Latin Nepali.
+     */
+    const nepaliText =
+      message.nepaliText || "";
+
+    const romanNepaliText =
+      message.romanNepaliText ||
+      message.romanizedText ||
+      "";
+
+    if (
+      nepaliText &&
+      romanNepaliText
+    ) {
+      return (
+        `${nepaliText}\n\n` +
+        romanNepaliText
+      );
+    }
+
+    return (
+      nepaliText ||
+      romanNepaliText ||
+      message.originalText ||
+      ""
+    );
+  }
+
+  function getParticipantDisplayName(userId) {
+    if (userId === "graham") {
+      return "Graham";
+    }
+
+    if (userId === "fulmaya") {
+      return "Fulmaya";
+    }
+
+    return userId || "Participant";
+  }
+
+  async function synchroniseConversation() {
+    if (conversationSyncRunning) {
+      return;
+    }
+
+    conversationSyncRunning = true;
+
+    try {
+      const messages =
+        await bridge.getConversationMessages();
+
+      messages.forEach((message) => {
+        const messageKey =
+          createDatabaseMessageKey(message);
+
+        if (
+          displayedDatabaseMessages.has(
+            messageKey
+          )
+        ) {
+          return;
+        }
+
+        displayedDatabaseMessages.add(
+          messageKey
+        );
+
+        /*
+         * Only show messages sent to the current device user.
+         */
+        if (
+          message.toUser !==
+          bridge.currentUser
+        ) {
+          return;
+        }
+
+        const incomingText =
+          getIncomingMessageText(message);
+
+        if (!incomingText) {
+          return;
+        }
+
+        addMessage({
+          text: incomingText,
+          role: "assistant",
+          originalText:
+            message.originalText || "",
+          label:
+            `${getParticipantDisplayName(
+              message.fromUser
+            )} · ${
+              bridge.currentUser === "graham"
+                ? "English"
+                : "Nepali"
+            }`
+        });
+
+        conversationMemory.push({
+          role: "assistant",
+          text: incomingText,
+          originalText:
+            message.originalText || "",
+          language:
+            bridge.currentUser === "graham"
+              ? "en"
+              : "ne",
+          fromUser:
+            message.fromUser,
+          timestamp:
+            message.timestamp ||
+            message.createdAt ||
+            new Date().toISOString()
+        });
+      });
+
+      setConnectionStatus("Online");
+    } catch (error) {
+      console.error(
+        "Conversation synchronisation error:",
+        error
+      );
+
+      setConnectionStatus(
+        "Conversation sync unavailable"
+      );
+    } finally {
+      conversationSyncRunning = false;
+    }
+  }
+
+  function startConversationSynchronisation() {
+    if (!config.messagesWebhookUrl) {
+      console.warn(
+        "Messages webhook URL is not configured."
+      );
+
+      return;
+    }
+
+    synchroniseConversation();
+
+    conversationSyncTimer =
+      window.setInterval(
+        synchroniseConversation,
+        2000
+      );
+  }
+
+  function configureParticipantLanguages() {
+    if (
+      bridge.currentUser === "fulmaya"
+    ) {
+      elements.sourceLanguage.value =
+        "ne";
+
+      elements.targetLanguage.value =
+        "en";
+    } else {
+      elements.sourceLanguage.value =
+        "en";
+
+      elements.targetLanguage.value =
+        "ne";
+    }
+
+    ensureDifferentLanguages();
+  }
     return conversationMemory.slice(-8);
   }
 
