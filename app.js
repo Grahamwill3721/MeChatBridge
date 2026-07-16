@@ -533,51 +533,82 @@
         return;
       }
 
- // --------------------------------------------------
-// Build recipient message
-// --------------------------------------------------
+       /* -------------------------------------------------- */
+      /* BUILD RECIPIENT MESSAGE                            */
+      /* -------------------------------------------------- */
 
-let displayText = "";
+      const nepaliText =
+        result.nepaliText ||
+        (
+          targetLanguage === "ne"
+            ? result.translatedText
+            : ""
+        ) ||
+        "";
 
-// English -> Nepali
-if (targetLanguage === "ne") {
+      const romanNepaliText =
+        result.romanNepaliText ||
+        result.romanizedText ||
+        "";
 
-  displayText = result.nepaliText || "";
+      const englishText =
+        result.englishText ||
+        (
+          targetLanguage === "en"
+            ? result.translatedText
+            : ""
+        ) ||
+        "";
 
-  if (result.romanNepaliText) {
-    displayText += "\n\n";
-    displayText += result.romanNepaliText;
-  }
+      let displayText = "";
 
-}
-// Nepali -> English
-else {
+      // English → Nepali
+      // Display Devanagari and Roman-Latin Nepali together.
+      if (targetLanguage === "ne") {
+        displayText = [
+          nepaliText,
+          romanNepaliText
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+      } else {
+        // Nepali or Roman-Latin Nepali → English
+        displayText =
+          englishText ||
+          result.translatedText ||
+          "No translation was returned.";
+      }
 
-  displayText =
-    result.englishText ||
-    result.translatedText ||
-    "No translation was returned.";
+      // Prevent an empty assistant bubble.
+      if (!displayText.trim()) {
+        displayText =
+          "No translation was returned.";
+      }
 
-}
+      addMessage({
+        text: displayText,
+        role: "assistant",
+        originalText:
+          result.originalText ||
+          originalText,
+        label:
+          `MeChat Bridge · ${getLanguageName(
+            targetLanguage
+          )}`
+      });
 
-addMessage({
-  text: displayText,
-  role: "assistant",
-  originalText:
-    result.originalText || originalText,
-  label:
-    `MeChat Bridge · ${getLanguageName(targetLanguage)}`
-});
-
-conversationMemory.push({
-  role: "assistant",
-  text: displayText,
-  originalText:
-    result.originalText || originalText,
-  language: targetLanguage,
-  confidence: result.confidence,
-  timestamp: new Date().toISOString()
-});
+      conversationMemory.push({
+        role: "assistant",
+        text: displayText,
+        originalText:
+          result.originalText ||
+          originalText,
+        language: targetLanguage,
+        confidence:
+          result.confidence,
+        timestamp:
+          new Date().toISOString()
+      });
       
       setConnectionStatus("Online");
     } catch (error) {
