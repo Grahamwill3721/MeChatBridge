@@ -17,7 +17,7 @@ window.MECHAT_CONFIG = {
    * Example:
    * https://your-n8n-domain.com/webhook/mechat-bridge
    */
-  webhookUrl: "https://arkdaia2.app.n8n.cloud/webhook/mechatbridge",
+  webhookUrl: "https://arkdaia2.app.n8n.cloud/webhook/mechatbridgev1",
 
   /**
    * Keep demo mode enabled until the n8n workflow
