@@ -155,12 +155,12 @@ select:disabled {
 
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 10px;
 
-  padding: 13px 17px;
+  padding: 9px 13px;
 
   border: 1px solid rgba(255, 255, 255, 0.78);
-  border-radius: 19px;
+  border-radius: 15px;
 
   background: rgba(255, 250, 247, 0.72);
 
