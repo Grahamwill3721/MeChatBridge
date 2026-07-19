@@ -627,7 +627,7 @@ let conversationSyncRunning = false;
     conversationSyncTimer =
       window.setInterval(
         synchroniseConversation,
-        2000
+        5000
       );
   }
 
