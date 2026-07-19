@@ -12,7 +12,7 @@ window.MECHAT_CONFIG = {
   version: "1.0.0",
 
 webhookUrl:
-  "https://arkdaia2.app.n8n.cloud/webhook/mechatbridgev1",
+  "https://https://n8n.meaiecosystem.com/webhook/mechatbridgev2",
 
 messagesWebhookUrl:
   "https://arkdaia2.app.n8n.cloud/webhook/mechatbridge-messages",
